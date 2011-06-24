@@ -168,29 +168,23 @@ generic module Msp430UsciSpiP () @safe() {
   }
 
   async command error_t SpiPacket.send[uint8_t client] (uint8_t* txBuf, uint8_t* rxBuf, uint16_t len) {
-       uint16_t bytesLeft = len;
+   uint16_t bytesLeft = len;
   
    while(bytesLeft){
-   
-   while (! (UCTXIFG & call Usci.getIfg())) {
-      ; /* busywait */
-    }
-    
-   call Usci.setTxbuf(txBuf[len-bytesLeft]);
+     while (! (UCTXIFG & call Usci.getIfg())) {
+        ; /* busywait */    }
+     call Usci.setTxbuf(txBuf[len-bytesLeft]);
 
-   while (! (UCRXIFG & call Usci.getIfg())) {
-      ; /* busywait */
-    }
+     while (! (UCRXIFG & call Usci.getIfg())) {
+        ; /* busywait */    }
 
-   rxBuf[len-bytesLeft] = call Usci.getRxbuf();
+     rxBuf[len-bytesLeft] = call Usci.getRxbuf();
+     bytesLeft=bytesLeft-1;
+   }
 
-   bytesLeft=bytesLeft-1;
-
-    }
-
-atomic{
-    signal SpiPacket.sendDone[client](txBuf, rxBuf, len, SUCCESS);
-}
+   atomic{
+      signal SpiPacket.sendDone[client](txBuf, rxBuf, len, SUCCESS);
+   }
     return SUCCESS;
   }
 
