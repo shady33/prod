@@ -1,0 +1,3 @@
+COMPONENT=sdC
+#PFLAGS += -DNO_SD
+include $(MAKERULES)
