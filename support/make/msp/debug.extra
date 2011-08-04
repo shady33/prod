@@ -8,4 +8,4 @@
 #
 # OPTFLAGS = -O1 -g -fnesc-no-inline
 
-OPTFLAGS += -g -fnesc-no-inline
+OPTFLAGS += -O0 -g -fnesc-no-inline
