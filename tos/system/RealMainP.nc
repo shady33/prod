@@ -53,6 +53,8 @@
  * @date   January 17 2005
  */
 
+volatile bool wait = 1;
+
 module RealMainP @safe() {
   provides interface Boot;
   uses interface Scheduler;
@@ -63,6 +65,10 @@ implementation {
   int main() @C() @spontaneous() {
     atomic
       {
+	WDTCTL = WDTPW + WDTHOLD;    // Stop watchdog timer
+	while(wait) {
+	  nop();
+	}
 	/* First, initialize the Scheduler so components can post
 	   tasks. Initialize all of the very hardware specific stuff, such
 	   as CPU settings, counters, etc. After the hardware is ready,
