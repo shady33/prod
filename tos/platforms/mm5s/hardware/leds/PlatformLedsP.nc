@@ -72,11 +72,11 @@ implementation {
 
   /***************** Leds Commands ****************/
   async command void Leds.led0On() {
-    call Led0.clr();
+    call Led0.set();
   }
 
   async command void Leds.led0Off() {
-    call Led0.set();
+    call Led0.clr();
   }
 
   async command void Leds.led0Toggle() {
@@ -84,11 +84,11 @@ implementation {
   }
 
   async command void Leds.led1On() {
-    call Led1.clr();
+    call Led1.set();
   }
 
   async command void Leds.led1Off() {
-    call Led1.set();
+    call Led1.clr();
   }
 
   async command void Leds.led1Toggle() {
@@ -96,11 +96,11 @@ implementation {
   }
 
  async command void Leds.led2On() {
-    call Led2.clr();
+    call Led2.set();
   }
 
   async command void Leds.led2Off() {
-    call Led2.set();
+    call Led2.clr();
   }
 
   async command void Leds.led2Toggle() {

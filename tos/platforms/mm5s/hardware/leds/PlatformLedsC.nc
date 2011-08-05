@@ -51,12 +51,12 @@ implementation {
 
   /* RED LED (D1) at P4.7 */
   components new Msp430GpioC() as Led0Impl;
-  Led0Impl -> GeneralIOC.Port47;
+  Led0Impl -> GeneralIOC.Port10;
   PlatformLedsP.Led0 -> Led0Impl;
 
   /* Yellow LED (D2) at P4.6 */
   components new Msp430GpioC() as Led1Impl;
-  Led1Impl -> GeneralIOC.Port46;
+  Led1Impl -> GeneralIOC.Port11;
   PlatformLedsP.Led1 -> Led1Impl;
 
  /* Green LED (D1) at P4.5 */
