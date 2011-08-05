@@ -53,7 +53,7 @@
  * @date   January 17 2005
  */
 
-volatile bool wait = 1;
+bool wait = 1;
 
 module RealMainP @safe() {
   provides interface Boot;

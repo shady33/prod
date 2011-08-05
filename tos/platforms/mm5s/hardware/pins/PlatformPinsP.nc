@@ -54,9 +54,6 @@ implementation {
        * 5438, all input, with OUT/IN left alone.
        */
 
-      P1DIR |= 0x10;
-      P3DIR = 0xff;
-
 #if 0 /* Disabled: these specific setting sare defaults, but others might not be */
       PMAPPWD = PMAPPW;                         // Get write-access to port mapping regs
       P1MAP5 = PM_UCA0RXD;                      // Map UCA0RXD output to P1.5

@@ -77,7 +77,8 @@ module PlatformClockP {
 
     /* Enable XT1, permanently, with no additional capacitance.
      *
-     * @note Both 5.0 and 5.1 must be cleared in P5DIR.
+     * @note Both 7.0 and 7.1 must be cleared in P5DIR.
+     * check (was 5.0/1) against surf.
      *
      * @note If the default capacitance of XCAP_3 is retained, SMCLK
      * measures 4 per-mil faster than it should.  On the SuRF
