@@ -107,9 +107,8 @@ display msp430 usci hardware
 end
 
 define sfr
-printf "ie1: %02x  ie2: %02x  ifg1: %02x  ifg2: %02x  rpcr: %02x%02x\n",\
-    (*(uint8_t *)0x100), (*(uint8_t *)0x101), (*(uint8_t *)0x102), (*(uint8_t *)0x103), \
-    (*(uint8_t *)0x105), (*(uint8_t *)0x104)
+printf "sfrie1: %04x  sfrifg1: %04x  rpcr: %04x\n",\
+    (*(uint16_t *)0x100), (*(uint16_t *)0x102), (*(uint16_t *)0x104)
 end
 document sfr
 display misc interrupt/fault registers
