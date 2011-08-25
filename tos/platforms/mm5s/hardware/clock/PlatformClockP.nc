@@ -85,12 +85,10 @@ module PlatformClockP {
      * hardware, setting XCAP to zero appears to work.  Other values
      * may be necessary on other hardware. */
 
-   // Dir = X (dont care) when P7SEL in crystal mode
-   // P7DIR &= ~(BIT0 | BIT1);
-
-    //set P7SEL.0 and P7SEL.1 to cristal mode (XIN and XOUT bits = 1)
+    // give P7.0 and P7.1 (XTIN, XTOUT) to the XTLF module
     P7SEL |= (BIT0 | BIT1);
-    // XT1 on, sourced internally
+
+    // XT1 on, no bybass, and use lowest cap.
     UCSCTL6 &= ~(XT1BYPASS | XT1OFF | XCAP_3);
 
     /* Spin waiting for a stable signal.  This loop runs somewhere
@@ -130,7 +128,6 @@ module PlatformClockP {
      * example code.)
      */
     if (UCSCTL7 & XT1LFOFFG) {
-      //P7DIR |= (BIT0 | BIT1);
       P7SEL &= ~(BIT0| BIT1);
       UCSCTL6 |= XT1OFF;
     } else {
