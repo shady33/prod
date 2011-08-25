@@ -107,21 +107,47 @@ display msp430 usci hardware
 end
 
 define sfr
-printf "sfrie1: %04x  sfrifg1: %04x  rpcr: %04x\n",\
-    (*(uint16_t *)0x100), (*(uint16_t *)0x102), (*(uint16_t *)0x104)
+printf "ie1: %02x  ie2: %02x  ifg1: %02x  ifg2: %02x  rpcr: %02x%02x\n",\
+    (*(uint8_t *)0x100), (*(uint8_t *)0x101), (*(uint8_t *)0x102), (*(uint8_t *)0x103), \
+    (*(uint8_t *)0x105), (*(uint8_t *)0x104)
 end
 document sfr
 display misc interrupt/fault registers
 end
 
+#display ucs registers
+# p 100. MSP430 Family User's Guide
+# mps430f5438, p26  has the UCS control 0-8 register addresses and offsets
+
 define ucs
 printf "ucsctl0:  %04x  %04x  %04x\n", (*(uint16_t *)0x160),(*(uint16_t *)0x162),(*(uint16_t *)0x164)
 printf "ucsctl3:  %04x  %04x  %04x\n", (*(uint16_t *)0x166),(*(uint16_t *)0x168),(*(uint16_t *)0x16a)
-printf "ucsctl6:  %04x  %04x  %04x\n", (*(uint16_t *)0x16c),(*(uint16_t *)0x16e),(*(uint16_t *)0x170)
+printf "ucsctl6:  %04x  %04x  %04x\n\n", (*(uint16_t *)0x16c),(*(uint16_t *)0x16e),(*(uint16_t *)0x170)
+printf "ucsctl0: %04x\n", ((*(uint16_t *)0x0160))
+printf "  dco: %x",    ((*(uint16_t *)0x0160) & 0x1F00) >> 8
+printf "    mod: %x\n\n",  ((*(uint16_t *)0x0160) & 0xf8) >> 3
+
+printf "ucsctl1: %04x\n",   ((*(uint16_t *)0x0162))
+printf "  dcorsel: %x",   ((*(uint16_t *)0x0162) & 0x70)  >> 4
+printf "    dismod:  %x\n\n", ((*(uint16_t *)0x0162) & 0x0001)
+
+printf "ucsctl2: %04x\n",    ((*(uint16_t *)0x0164))
+printf "  flld: %01x",       (((*(uint16_t *)0x0164) & 0x7000) >> 8) >> 4
+printf "    flln: %04x\n\n", ((*(uint16_t *)0x0164) & 0x3FF)
+
+printf "ucsctl3: %04x\n",        ((*(uint16_t *)0x0166))
+printf "  selref: %1x",          ((*(uint16_t *)0x0166) & 0x70) >> 4
+printf "    fllrefdiv: %1x\n\n", ((*(uint16_t *)0x0166) & 0x7)
+
+printf "ucsctl4: %04x\n",    ((*(uint16_t *)0x0168))
+printf "  sela: %01x",       ((*(uint16_t *)0x0168) & 0x700) >> 8
+printf "    sels: %01x",     ((*(uint16_t *)0x0168) & 0x70) >> 4
+printf "    selm: %01x\n\n", ((*(uint16_t *)0x0168) & 0x7)
 end
 document ucs
 display msp430 5xxx unified clock system hardware
 end
+
 
 define dp2
 printf "p2  i: %02x  o: %02x  d: %02x  f: %02x  es: %02x  ie: %02x  sel: %02x  ren: %02x  ds: %02x\n",\
