@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2010 People Power Co.
+ * Copyright (c) 2010-2011 Eric B. Decker
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,29 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * Warning: many of these routines directly touch cpu registers
+ * it is assumed that this is initilization code and interrupts are
+ * off.
+ *
+ * @author Eric B. Decker
  */
+
+#ifdef notdef
+#include "hardware.h"
+#include "platform_version.h"
+
+const uint8_t _major = MAJOR;
+const uint8_t _minor = MINOR;
+const uint8_t _build = _BUILD;
+
+
+#define BOOT_MAJIK 0x01021910
+noinit uint32_t boot_majik;
+noinit uint16_t boot_count;
+
+#endif
+
 
 module PlatformP {
   provides interface Init;
@@ -58,11 +80,6 @@ implementation {
     call PlatformLeds.init();   // Initializes the Leds
     call PlatformClock.init();  // Initializes UCS
     call PeripheralInit.init();
-
-    // Wait an arbitrary 10 milliseconds for the FLL to calibrate the DCO
-    // before letting the system continue on into a low power mode.
-    uwait(1024*10);
-
     return SUCCESS;
   }
 
