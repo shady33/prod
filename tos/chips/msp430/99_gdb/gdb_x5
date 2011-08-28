@@ -120,58 +120,56 @@ end
 # mps430f5438, p26  has the UCS control 0-8 register addresses and offsets
 
 define ucs
-printf "ucsctl0:  %04x  %04x  %04x\n", (*(uint16_t *)0x160),(*(uint16_t *)0x162),(*(uint16_t *)0x164)
-printf "ucsctl3:  %04x  %04x  %04x\n", (*(uint16_t *)0x166),(*(uint16_t *)0x168),(*(uint16_t *)0x16a)
-printf "ucsctl6:  %04x  %04x  %04x\n\n", (*(uint16_t *)0x16c),(*(uint16_t *)0x16e),(*(uint16_t *)0x170)
 printf "ucsctl0: %04x\n", ((*(uint16_t *)0x0160))
 printf "  dco: %x",    ((*(uint16_t *)0x0160) & 0x1F00) >> 8
-printf "    mod: %x\n\n",  ((*(uint16_t *)0x0160) & 0xf8) >> 3
+printf "    mod: %x\n",  ((*(uint16_t *)0x0160) & 0xf8) >> 3
 
 printf "ucsctl1: %04x\n",   ((*(uint16_t *)0x0162))
 printf "  dcorsel: %x",   ((*(uint16_t *)0x0162) & 0x70)  >> 4
-printf "    dismod:  %x\n\n", ((*(uint16_t *)0x0162) & 0x0001)
+printf "    dismod:  %x\n", ((*(uint16_t *)0x0162) & 0x0001)
 
 printf "ucsctl2: %04x\n",    ((*(uint16_t *)0x0164))
 printf "  flld: %01x",       (((*(uint16_t *)0x0164) & 0x7000) >> 8) >> 4
-printf "    flln: %04x\n\n", ((*(uint16_t *)0x0164) & 0x3FF)
+printf "    flln: %04x\n", ((*(uint16_t *)0x0164) & 0x3FF)
 
 printf "ucsctl3: %04x\n",        ((*(uint16_t *)0x0166))
 printf "  selref: %1x",          ((*(uint16_t *)0x0166) & 0x70) >> 4
-printf "    fllrefdiv: %1x\n\n", ((*(uint16_t *)0x0166) & 0x7)
+printf "    fllrefdiv: %1x\n", ((*(uint16_t *)0x0166) & 0x7)
 
 printf "ucsctl4: %04x\n",    ((*(uint16_t *)0x0168))
 printf "  sela: %01x",       ((*(uint16_t *)0x0168) & 0x700) >> 8
 printf "    sels: %01x",     ((*(uint16_t *)0x0168) & 0x70) >> 4
-printf "    selm: %01x\n\n", ((*(uint16_t *)0x0168) & 0x7)
+printf "    selm: %01x\n", ((*(uint16_t *)0x0168) & 0x7)
 
 printf "ucsctl5: %04x\n",   ((*(uint16_t *)0x016A))
 printf "  divpa: %d",       ((*(uint16_t *)0x016A) & 0x7000) >> 12
 printf "    diva: %d",      ((*(uint16_t *)0x016A) & 0x700)  >> 8
 printf "    divs: %d",      ((*(uint16_t *)0x016A) & 0x70)   >> 4
-printf "    divm: %d\n\n",  ((*(uint16_t *)0x016A) & 0x7)  
-end
+printf "    divm: %d\n",  ((*(uint16_t *)0x016A) & 0x7)  
 
 printf "ucsctl6: %04x\n",         ((*(uint16_t *)0x016C))
 printf "  xt2drive: %02x",        ((*(uint16_t *)0x016C) & 0xC000) >> 14
 printf "    xt2ypass: %01x",      ((*(uint16_t *)0x016C) & 0x1000) >> 12
-printf "    xt2off: %01x\n\n",    ((*(uint16_t *)0x016C) & 0x1)    >> 8
+printf "    xt2off: %01x\n",    ((*(uint16_t *)0x016C) & 0x1)    >> 8
 printf "    xt1drive:  %02x",     ((*(uint16_t *)0x016C) & 0xC0)   >> 6
 printf "    xt1bypass: %01x",     ((*(uint16_t *)0x016C) & 0x10)   >> 4
 printf "    xcap: %02x",          ((*(uint16_t *)0x016C) & 0xC)    >> 2
 printf "    smclkoff: %01x",      ((*(uint16_t *)0x016C) & 0x1)    >> 1
-printf "    xt1off: %01x\n\n",    ((*(uint16_t *)0x016C) & 0x1)  
+printf "    xt1off: %01x\n",    ((*(uint16_t *)0x016C) & 0x1)  
 
 printf "ucsctl7: %04x\n",         ((*(uint16_t *)0x016E))
-printf "  xt2offg: %01x",         ((*(uint16_t *)0x016E) & 0x8) >> 3
-printf "    xt1hoffg: %01x",      ((*(uint16_t *)0x016E) & 0x4) >> 2
-printf "    xt1loffg: %01x",      ((*(uint16_t *)0x016E) & 0x2) >> 1
-printf "    dcoffg: %01x",        ((*(uint16_t *)0x016E) & 0x1) 
+printf "  xt2flt: %01x",         ((*(uint16_t *)0x016E) & 0x8) >> 3
+printf "    xt1hfflt: %01x",      ((*(uint16_t *)0x016E) & 0x4) >> 2
+printf "    xt1lfflt: %01x",      ((*(uint16_t *)0x016E) & 0x2) >> 1
+printf "    dcoflt: %01x\n",        ((*(uint16_t *)0x016E) & 0x1) 
 
 printf "ucsctl8: %04x\n",         ((*(uint16_t *)0x0170))
 printf "  modoscreqen: %01x",     ((*(uint16_t *)0x0170) & 0x8) >> 3
 printf "    smclkreqen: %01x",    ((*(uint16_t *)0x0170) & 0x4) >> 2
 printf "    mclkreqen: %01x",     ((*(uint16_t *)0x0170) & 0x2) >>1
-printf "    aclkreqen: %01x\n\n", ((*(uint16_t *)0x016C) & 0x1)
+printf "    aclkreqen: %01x\n", ((*(uint16_t *)0x016C) & 0x1)
+
+sfr
 
 end
 document ucs
