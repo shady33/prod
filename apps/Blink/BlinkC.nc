@@ -47,6 +47,9 @@
 
 #include "Timer.h"
 
+uint16_t start_xt1;
+uint16_t start_dco;
+
 module BlinkC @safe()
 {
   uses interface Timer<TMilli> as Timer0;
@@ -59,6 +62,13 @@ implementation
 {
   event void Boot.booted()
   {
+    start_xt1 = TA0R;
+    while (start_xt1 == TA0R) ;
+    start_dco = TA1R;
+    start_xt1 = TA0R;
+    while (start_xt1 == TA0R) ;
+    start_dco = TA1R - start_dco;
+    
     call Timer0.startPeriodic( 250 );
     call Timer1.startPeriodic( 500 );
     call Timer2.startPeriodic( 1000 );
@@ -68,18 +78,21 @@ implementation
   {
     dbg("BlinkC", "Timer 0 fired @ %s.\n", sim_time_string());
     call Leds.led0Toggle();
+    nop();
   }
   
   event void Timer1.fired()
   {
     dbg("BlinkC", "Timer 1 fired @ %s \n", sim_time_string());
     call Leds.led1Toggle();
+    nop();
   }
   
   event void Timer2.fired()
   {
     dbg("BlinkC", "Timer 2 fired @ %s.\n", sim_time_string());
     call Leds.led2Toggle();
+    nop();
   }
 }
 
