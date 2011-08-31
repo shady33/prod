@@ -38,6 +38,38 @@
  *
  * MM5s are based on msp430f5438 series cpus.
  *
+ * The 5438 runs at 2.2V and can clock up to 18MHz.   The 5438a
+ * can run at 1.8V (up to 8 MHz), and its core can be tweaked to
+ * enable faster clocking.   We default to using 8MHz so allow
+ * low power execution on the 5438a.
+ *
+ * Previous ports of TinyOS to msp430 cpus, would set the cpu to
+ * clock at a power of 2 (MiHz).   This was to facilitate syncronizing
+ * with the 32768 (32 KiHz) XT1 crystal.   The Timer TEP talks about
+ * time in TinyOS being binary time.  1 mis (binary millisec = 1/1024)
+ * is provided by TMilli and 1 uis (binary microsec = 1/1024/1024)
+ * is provided by TMicro.
+ *
+ * It is very desireable to run the 5438a at 1.8V for power conservation
+ * (the specs are quite good).  We also want to run it at 8MHz (decimal).
+ * Clocking at 8MiHz is not recommended (out of spec).  It might work but
+ * it is unclear how flakey behaviour would manifest.  Not recommended.
+ *
+ * So for power performance reasons we want to configure for 8MHz and 1.8V.
+ * (Yes the 5438 is different but we are using it to simulate set up for
+ * the 5438a which has the tasty power performance specs.)
+ *
+ * The TMicro timer (TA1) is run off DCOCLK/8 which yields 1us (not 1uis)
+ * ticks.  However, TMilli is the long term timer that runs when the system
+ * is sleeping.   It is clocked off XT1 at 32KiHz.   This is a power of 2
+ * and TMilli is defined by TEP to be in terms of 1mis.
+ *
+ * However, this then means that TMicro is in terms of 1us and TMilli is
+ * in terms of 1mis (essentially different units).  This is not a good situation.
+ * It is better to be consistent in terms of units for both TMilli and TMicro.
+ * The constrant is on TMicro because of the 8MHz restriction forcing 1us.
+ * This argues for TMilli also being in decimal time (1ms).
+ *
  * We want the following set up to be true when we are complete:
  *
  * 8 MHz clock.    The 5438a is spec'd for a max of 8MHz when
@@ -52,7 +84,9 @@
  *
  * SMCLK /1: used for timers and peripherals.  We want to run the
  * SPI (SD, GPS, subsystems, etc.) quickly and this gives us the
- * option.  Off DCOCLK.
+ * option.  Off DCOCLK.  May want to divide it down because it isn't
+ * needed to be full speed.   Dividing it down should save some energy
+ * because we won't be clocking downstream parts as fast.
  *
  * ACLK: 32 KiHz.   Primarily used for slow speed timer that
  * provides TMilli.
@@ -64,32 +98,89 @@
  *
  * The code loops up to 625ms waiting for XT1 stability.  If stability
  * is not achieved, the XT1 functionality is disabled.  This should
- * cause a hard_panic which results in writing a panic block in slow
- * mode.  Should never happen.
+ * cause a hcf_panic which results in writing a panic block in slow
+ * mode.  Should never happen.  Famous last words (right before the
+ * rocket blows up).
  *
  * Stabilization appears to take roughly 150ms.
  *
  * @author Eric B. Decker <cire831@gmail.com>
  */
 
-uint16_t xt1_ctr;
+#define noinit	__attribute__ ((section(".noinit"))) 
 
-void __delay_cycles(uint32_t count);
+uint16_t xt1_ctr;
+noinit uint16_t xt1_stop;
+
+#define XT1_DELTAS 10
+uint16_t xt1_idx;
+uint16_t xt1_deltas[XT1_DELTAS];
+uint16_t xt1_cap;
+bool cap;
+uint16_t xt1_read;
+uint16_t last_xt1, last_dco;
+
+/*
+ * debugging code for tracing how the FLL homes in on the
+ * target frequency.   We only nab those values which change.
+ */
+
+#define STUFF_SIZE 128
+
+noinit uint16_t ucsctl0[STUFF_SIZE];
+
+noinit bool clear_stuff;
+noinit uint16_t nxt;
+
+void set_stuff() {
+  if (clear_stuff) {
+    memset(ucsctl0, 0, sizeof(ucsctl0));
+    clear_stuff = 0;
+    nxt = 0;
+  }
+  if (nxt >= STUFF_SIZE)
+    nxt = 0;
+  ucsctl0[nxt] = UCSCTL0;
+  nxt++;
+}
+
 
 module PlatformClockP {
   provides interface Init;
-  uses interface Msp430XV2ClockControl;
-  uses interface Init as SubInit;
 } implementation {
 
-  default command error_t SubInit.init () { }
-
   /*
-   * We assume that the clock system after reset has been
-   * set to some reasonable value.  ie ~1MHz.  We assume that
-   * all the selects are 0, ie.  DIVA/1, XTS 0, XT2OFF, SELM 0,
-   * DIVM/1, SELS 0, DIVS/1.  MCLK <- DCO, SMCLK <- DCO,
-   * LFXT1S 32768, XCAP ~6pf
+   * wait_for_32K()
+   *
+   * The 32KiHz Xtal provides a stable low power time base for everything
+   * else needing time in the system.   It drives the FLL which provides
+   * syncronization for the DCO and ACLK which provides the time base
+   * for low power time (TMilli).
+   *
+   * The h/w has provisions for detecting XT1 oscillator faults but we
+   * don't know if that takes into account frequency stability.  We have
+   * observed on the msp430f2618 that the XT1 oscillator takes a considerable
+   * amount of time to actual home to its base frequency.   And that
+   * is where we want it before we do anything else.   So we need to
+   * give it time to stabilize before using it.   This should only be true
+   * coming out of reset.  Anytime we reset P7.0 and P7.1 (XT1IN, XT1OUT)
+   * are reset to inputs and Pin Control and this shuts down the oscillator.
+   * So we need to bring it back up.
+   *
+   * On reset the 5438/5438a UCS is set to a configuration much like the
+   * following:  (all values in hex).
+   *
+   * ucsctl0: 13e8 0020 101f 0000 0044 0000 c1cd 0403 0307
+   *
+   * dco: 13, mod: 1e, rsel: 2, flld: 1 (f_dcoclk/2), flln: 1f
+   * selref: 0 (XT1CLK), fllrefdiv: 0 (f_fllrefclk/1)
+   * sela: 0 (xt1clk), sels: 4 (dcoclkdiv), selm: 4 (dcoclkdiv)
+   * diva = divs = divm = 0 (/1)
+   * xt2off, xt1off
+   *
+   * xt1 is off so clocking from REFO (32KiHz), XT1 pins set to Port/In.
+   * FLL is comparing 32KiHz * 32 = 1MiHz vs. dcoclk/2 => dcoclk 2MiHz
+   * SMCLK, MCLK => 1MiHz.
    *
    * We wait about a second for the 32KHz to stablize.
    *
@@ -100,18 +191,30 @@ module PlatformClockP {
 
 #define PWR_UP_SEC 16
 
-  void wait_for_32K() __attribute__ ((noinline)) {
-    nop();
+  uint16_t maj_xt1() {
+    uint16_t a, b, c;
+
+    a = TA0R; b = TA0R; c = TA0R;
+    if (a == b) return a;
+    if (a == c) return a;
+    if (b == c) return b;
+    while (1)
+      nop();
+    return 0;
   }
 
-#ifdef notdef
+
+  void wait_for_32K() __attribute__ ((noinline)) {
     uint16_t left;
 
-    TACTL = TACLR;			// also zeros out control bits
-    TBCTL = TBCLR;
-    TACTL = TASSEL_2 | MC_2;		// SMCLK/1, continuous
-    TBCTL = TBSSEL_1 | MC_2;		//  ACLK/1, continuous
-    TBCCTL0 = 0;
+    /*
+     * TA0 -> XT1 32768   (just for fun and to compare against TA1 (1uis ticker)
+     * TA1 -> SMCLK/1 (should be 1uis ticker)
+     */
+    TA0CTL = TACLR;			// also zeros out control bits
+    TA1CTL = TACLR;
+    TA0CTL = TASSEL__ACLK  | MC__CONTINOUS;	//  ACLK/1, continuous
+    TA1CTL = TASSEL__SMCLK | MC__CONTINOUS;	// SMCLK/1, continuous
 
     /*
      * wait for about a sec for the 32KHz to come up and
@@ -122,25 +225,53 @@ module PlatformClockP {
      * FIX ME.  Need to verify stability of 32KHz.  It definitely
      * has a good looking waveform but what about its frequency
      * stability.  Needs to be measured.
+     *
+     * One thing to try is watching successive edges (ticks, TA0R, changing
+     * by one) and seeing how many TA1 (1 uis) ticks have gone by.   When it is
+     * around 30-31 ticks then we are in the right neighborhood.
+     *
+     * We should see about PWR_UP_SEC (16) * 64Ki * 1/1024/1024 seconds which just
+     * happens to majikly equal 1 second.   whew!
      */
+
+    xt1_cap = 16;
     left = PWR_UP_SEC;
     while (1) {
-      if (TACTL & TAIFG) {
+      if (TA1CTL & TAIFG) {
 	/*
 	 * wrapped, clear IFG, and decrement major count
 	 */
-	TACTL &= ~TAIFG;
+	TA1CTL &= ~TAIFG;
 	if (--left == 0)
 	  break;
+	if (left <= xt1_cap) {
+	  cap = TRUE;
+	  xt1_cap = 0;			/* disable future capture triggers */
+	  xt1_idx = 0;
+	  last_xt1 = maj_xt1();
+	  last_dco = TA1R;
+	}
+      }
+      if (cap) {
+	xt1_read = maj_xt1();
+	if (last_xt1 == xt1_read)
+	  continue;
+	if (last_xt1 != xt1_read) {
+	  xt1_deltas[xt1_idx++] = TA1R - last_dco;
+	  last_xt1 = xt1_read;
+	  last_dco = TA1R;
+	  if (xt1_idx >= XT1_DELTAS) {
+	    cap = FALSE;
+	    nop();
+	  }
+	}
       }
     }
+    nop();
   }
-#endif
 
 
   command error_t Init.init () {
-    uint16_t i;
-
     /*
      * Enable XT1, lowest capacitance.
      *
@@ -159,9 +290,7 @@ module PlatformClockP {
      * XTS=0 (which it will be).   So a strange comment.
      *
      * Surf found XCAP=0 worked nice.  We do the same thing but it should
-     * be checked.
-     *
-     * FIXME. 
+     * be checked.   FIXME. 
      */
 
     P7SEL |= (BIT0 | BIT1);
@@ -185,9 +314,10 @@ module PlatformClockP {
      */
 
     /*
-     * xtr_ctr is initialized to 0 and counts up, if it hits zero
+     * xt1_ctr is initialized to 0 and counts up, if it hits zero
      * again because it wrapped then we bail and panic.
      */
+    xt1_ctr = 0;
     do {
       xt1_ctr++;
       UCSCTL7 &= ~(XT1LFOFFG | DCOFFG);
@@ -236,9 +366,10 @@ module PlatformClockP {
      * ACLK is to be set to XT1CLK, assumed to be 32KiHz (2^15Hz).
      * This drives TA0 for TMilli.
      *
-     * DCO is to be set as configured.  The clock divider is the
-     * minimum value of 2.
-     *
+     * We run DCO into the integrator as /1 (FLLD_0).  This also makes
+     * DCOCLKDIV = DCO.  FLLN gets set to 243.   32768 * (243 + 1)
+     * = 7,995,392 Hz.   The 32768 XT1 REFCLK is not divided down
+     * (/1, REFDIV).
      */
 
     /* Disable FLL control */
@@ -258,8 +389,6 @@ module PlatformClockP {
      * is closest to your desired DCO frequency.   (Where did this
      * come from?)   I've chosen next range up, don't want to run out
      * of head room.
-     *
-     * 32768 * (243 + 1) = 7,995,392 Hz
      */
 
     UCSCTL0 = 0x0000;		     // Set lowest possible DCOx, MODx
@@ -267,16 +396,50 @@ module PlatformClockP {
     UCSCTL2 = FLLD_0 + 243;
     __bic_SR_register(SR_SCG0);               // Enable the FLL control loop
 
-    // Worst-case settling time for the DCO when the DCO range bits have been
-    // changed is n x 32 x 32 x f_MCLK / f_FLL_reference. See UCS chapter in 5xx
-    // UG for optimization.
-    // 32 x 32 x 8 MHz / 32,768 Hz = 256000 = MCLK cycles for DCO to settle
+    /*
+     * Worst-case settling time for the DCO when the DCO range bits have been
+     * changed is n x 32 x 32 x f_MCLK / f_FLL_reference. See UCS chapter in 5xx
+     * UG for optimization.
+     *
+     * n x 32 x 32 x 8 MHz / 32,768 Hz = 256000 = MCLK cycles for DCO to settle.
+     * but we don't know what n is (depends on how the FLL integrator works).
+     *
+     * Now this seems like a strange way to do this.   This of course assumes
+     * that we are going to home on an arbritrary frequency so need to start
+     * from dco:0/mod:0.  But even that doesn't make a whole boat load of sense.
+     * If going to an arbritary frequency, seems to make sense to start in the
+     * middle and either move up or down.
+     *
+     * Now that said, we have a pretty good idea of where we are going.   To take
+     * into account temperature variance and dies we start below our target.  But
+     * not that far.  ie.  we know we are going to ~8MHz and dco:x/mod:y is one
+     * such result.   So starting ~25% below that should work just fine and greatly
+     * reduces potential start up time.   This eliminates the need for the maximum
+     * delay waiting for the FLL to lock in.   We can simply run, checking dco/mod
+     * looking for the maximum value we allow.   Or just let it run to dco: 31, mod: 0.
+     * If it hits 31 we be done.
+     */
 
-    for (i = 0; i < 10; i++)		/* really how long */
-      __delay_cycles(25600);
+    xt1_ctr = 0;
+    clear_stuff = 1;
+    do {
+      xt1_ctr++;
+      set_stuff();
+      if (xt1_ctr == xt1_stop)
+	nop();
+    } while (xt1_ctr);
 
-    // Loop until DCO fault flag is cleared.  Ignore OFIFG, since it
-    // incorporates XT1 and XT2 fault detection.
+    /*
+     * Loop until DCO fault flag is cleared.  Ignore OFIFG, since it
+     * incorporates XT1 and XT2 fault detection.
+     *
+     * But XT2 is off so shouldn't be generating a fault and XT1 better
+     * be running we are assuming it drives the FLL.  Yes if it fails
+     * then we auto switch over to the internal 32KiHz REFO.   But this
+     * would be counter productive so looking for XT1 fault makes
+     * some sense.   But it would be an error bail.  Shouldn't happen.
+     */
+
     do {
       UCSCTL7 &= ~(XT1LFOFFG | DCOFFG);
       SFRIFG1 &= ~OFIFG;                      // Clear fault flags
@@ -291,9 +454,19 @@ module PlatformClockP {
      */
     UCSCTL4 = SELA__XT1CLK | SELS__DCOCLK | SELM__DCOCLK;
     UCSCTL5 = DIVA__1 | DIVS__1 | DIVM__1;
-    call Msp430XV2ClockControl.configureTimers();
-    call Msp430XV2ClockControl.start32khzTimer();
-    call Msp430XV2ClockControl.startMicroTimer();
+
+    /*
+     * TA0 clocked off XT1, used for TMilli, 32KiHz.
+     */
+    TA0CTL = TASSEL__ACLK | TACLR | MC__CONTINOUS | TAIE;
+    TA0R = 0;
+
+    /*
+     * TA1 clocked off SMCLK off DCO, /8, 1us tick
+     */
+    TA1CTL = TASSEL__SMCLK | ID__8 | TACLR | MC__CONTINOUS | TAIE;
+    TA1R = 0;
+
     return SUCCESS;
   }
 }

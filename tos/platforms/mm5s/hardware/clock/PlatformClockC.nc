@@ -44,11 +44,6 @@
 configuration PlatformClockC {
   provides interface Init;
 } implementation {
-  components Msp430XV2ClockC;
   components PlatformClockP;
-  PlatformClockP.SubInit -> Msp430XV2ClockC;
   Init = PlatformClockP;
-
-//  components Msp430XV2ClockControlP;
-  PlatformClockP.Msp430XV2ClockControl -> Msp430XV2ClockC;
 }
