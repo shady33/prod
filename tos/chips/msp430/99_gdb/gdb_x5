@@ -107,9 +107,8 @@ display msp430 usci hardware
 end
 
 define sfr
-printf "ie1: %02x  ie2: %02x  ifg1: %02x  ifg2: %02x  rpcr: %02x%02x\n",\
-    (*(uint8_t *)0x100), (*(uint8_t *)0x101), (*(uint8_t *)0x102), (*(uint8_t *)0x103), \
-    (*(uint8_t *)0x105), (*(uint8_t *)0x104)
+printf "sfr: ie1: %04x  ifg1: %04x  rpcr: %04x\n",\
+    (*(uint16_t *)0x100), (*(uint16_t *)0x102), (*(uint16_t *)0x104)
 end
 document sfr
 display misc interrupt/fault registers
@@ -120,56 +119,66 @@ end
 # mps430f5438, p26  has the UCS control 0-8 register addresses and offsets
 
 define ucs
-printf "ucsctl0: %04x\n", ((*(uint16_t *)0x0160))
-printf "  dco: %x",    ((*(uint16_t *)0x0160) & 0x1F00) >> 8
-printf "    mod: %x\n",  ((*(uint16_t *)0x0160) & 0xf8) >> 3
+set $_tmp = *(uint16_t *) 0x0160
+printf "ucsctl0: %04x\n",	$_tmp
+printf "  dco: %x",		($_tmp & 0x1F00) >> 8
+printf "  mod: %x\n",		($_tmp & 0x00f8) >> 3
 
-printf "ucsctl1: %04x\n",   ((*(uint16_t *)0x0162))
-printf "  dcorsel: %x",   ((*(uint16_t *)0x0162) & 0x70)  >> 4
-printf "    dismod:  %x\n", ((*(uint16_t *)0x0162) & 0x0001)
+set $_tmp = *(uint16_t *) 0x0162
+printf "ucsctl1: %04x\n",	($_tmp)
+printf "  dcorsel: %x",		($_tmp & 0x0070) >> 4
+printf "  dismod:  %x\n",	($_tmp & 0x0001)
 
-printf "ucsctl2: %04x\n",    ((*(uint16_t *)0x0164))
-printf "  flld: %01x",       (((*(uint16_t *)0x0164) & 0x7000) >> 8) >> 4
-printf "    flln: %04x\n", ((*(uint16_t *)0x0164) & 0x3FF)
+set $_tmp = *(uint16_t *) 0x0164
+printf "ucsctl2: %04x\n",	($_tmp)
+printf "  flld: %x",		($_tmp & 0x7000) >> 8 >> 4
+printf "  flln: %x\n",		($_tmp & 0x03FF)
 
-printf "ucsctl3: %04x\n",        ((*(uint16_t *)0x0166))
-printf "  selref: %1x",          ((*(uint16_t *)0x0166) & 0x70) >> 4
-printf "    fllrefdiv: %1x\n", ((*(uint16_t *)0x0166) & 0x7)
+set $_tmp = *(uint16_t *) 0x0166
+printf "ucsctl3: %04x\n",	($_tmp)
+printf "  selref: %x",		($_tmp & 0x0070) >> 4
+printf "  fllrefdiv: %x\n",	($_tmp & 0x0007)
 
-printf "ucsctl4: %04x\n",    ((*(uint16_t *)0x0168))
-printf "  sela: %01x",       ((*(uint16_t *)0x0168) & 0x700) >> 8
-printf "    sels: %01x",     ((*(uint16_t *)0x0168) & 0x70) >> 4
-printf "    selm: %01x\n", ((*(uint16_t *)0x0168) & 0x7)
+set $_tmp = *(uint16_t *) 0x0168
+printf "ucsctl4: %04x\n",	($_tmp)
+printf "  sela: %x",		($_tmp & 0x0700) >> 8
+printf "  sels: %x",		($_tmp & 0x0070) >> 4
+printf "  selm: %x\n",		($_tmp & 0x0007)
 
-printf "ucsctl5: %04x\n",   ((*(uint16_t *)0x016A))
-printf "  divpa: %d",       ((*(uint16_t *)0x016A) & 0x7000) >> 12
-printf "    diva: %d",      ((*(uint16_t *)0x016A) & 0x700)  >> 8
-printf "    divs: %d",      ((*(uint16_t *)0x016A) & 0x70)   >> 4
-printf "    divm: %d\n",  ((*(uint16_t *)0x016A) & 0x7)  
+set $_tmp = *(uint16_t *) 0x016a
+printf "ucsctl5: %04x\n",	($_tmp)
+printf "  divpa: %d",		($_tmp & 0x7000) >> 8 >> 4
+printf "  diva: %d",		($_tmp & 0x0700) >> 8
+printf "  divs: %d",		($_tmp & 0x0070) >> 4
+printf "  divm: %d\n",		($_tmp & 0x0007)  
 
-printf "ucsctl6: %04x\n",         ((*(uint16_t *)0x016C))
-printf "  xt2drive: %02x",        ((*(uint16_t *)0x016C) & 0xC000) >> 14
-printf "    xt2ypass: %01x",      ((*(uint16_t *)0x016C) & 0x1000) >> 12
-printf "    xt2off: %01x\n",    ((*(uint16_t *)0x016C) & 0x1)    >> 8
-printf "    xt1drive:  %02x",     ((*(uint16_t *)0x016C) & 0xC0)   >> 6
-printf "    xt1bypass: %01x",     ((*(uint16_t *)0x016C) & 0x10)   >> 4
-printf "    xcap: %02x",          ((*(uint16_t *)0x016C) & 0xC)    >> 2
-printf "    smclkoff: %01x",      ((*(uint16_t *)0x016C) & 0x1)    >> 1
-printf "    xt1off: %01x\n",    ((*(uint16_t *)0x016C) & 0x1)  
+set $_tmp = *(uint16_t *) 0x016c
+printf "ucsctl6: %04x\n",	($_tmp)
+printf "  xt2drive: %x",	($_tmp & 0xC000) >> 8 >> 6
+printf "  xt2bypass: %x",	($_tmp & 0x1000) >> 8 >> 4
+printf "  xt2off: %x\n",	($_tmp & 0x0100) >> 8
+printf "  xt1drive: %x",	($_tmp & 0x00C0) >> 6
+printf "  xts: %x",  		($_tmp & 0x0020) >> 5
+printf "  xt1bypass: %x",	($_tmp & 0x0010) >> 4
+printf "  xcap: %x",		($_tmp & 0x000C) >> 2
+printf "  smclkoff: %x",	($_tmp & 0x0002) >> 1
+printf "  xt1off: %x\n",	($_tmp & 0x0001)  
 
-printf "ucsctl7: %04x\n",         ((*(uint16_t *)0x016E))
-printf "  xt2flt: %01x",         ((*(uint16_t *)0x016E) & 0x8) >> 3
-printf "    xt1hfflt: %01x",      ((*(uint16_t *)0x016E) & 0x4) >> 2
-printf "    xt1lfflt: %01x",      ((*(uint16_t *)0x016E) & 0x2) >> 1
-printf "    dcoflt: %01x\n",        ((*(uint16_t *)0x016E) & 0x1) 
+set $_tmp = *(uint16_t *) 0x016e
+printf "ucsctl7: %04x\n",	($_tmp)
+printf "  xt2flt: %x",		($_tmp & 0x0008) >> 3
+printf "  xt1hfflt: %x",	($_tmp & 0x0004) >> 2
+printf "  xt1lfflt: %x",	($_tmp & 0x0002) >> 1
+printf "  dcoflt: %x",		($_tmp & 0x0001) 
+set $_tmp = *(uint16_t *) 0x102
+printf "  oscflt: %x\n",	($_tmp & 0x0002) >> 1
 
-printf "ucsctl8: %04x\n",         ((*(uint16_t *)0x0170))
-printf "  modoscreqen: %01x",     ((*(uint16_t *)0x0170) & 0x8) >> 3
-printf "    smclkreqen: %01x",    ((*(uint16_t *)0x0170) & 0x4) >> 2
-printf "    mclkreqen: %01x",     ((*(uint16_t *)0x0170) & 0x2) >>1
-printf "    aclkreqen: %01x\n", ((*(uint16_t *)0x016C) & 0x1)
-
-sfr
+set $_tmp = *(uint16_t *) 0x0170
+printf "ucsctl8: %04x\n",	($_tmp)
+printf "  modoscreqen: %x",	($_tmp & 0x0008) >> 3
+printf "  smclkreqen: %x",	($_tmp & 0x0004) >> 2
+printf "  mclkreqen: %x",	($_tmp & 0x0002) >> 1
+printf "  aclkreqen: %x\n",	($_tmp & 0x0001)
 
 end
 document ucs
