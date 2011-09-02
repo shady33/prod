@@ -1,0 +1,17 @@
+README for TestTMP112App
+
+Author/Contact: Tod Landis <go@todlandis.com>
+
+Description:
+A test application for the TMP112/I2C sensor driver.
+
+This is work-in-progress! Just taking a snapshot
+tod 9/1/2011
+
+Tools:
+
+None
+
+Known bugs/limitations:
+
+None.
