@@ -1,2 +1,3 @@
 This is work-in-progress on the TMP112 + I2C driver.  
-Not ready for prime time.
+Not ready for prime time.  Requires a new .platform file
+not yet checked in.
