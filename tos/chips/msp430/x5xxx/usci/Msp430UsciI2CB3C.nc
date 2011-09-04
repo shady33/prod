@@ -65,5 +65,12 @@ implementation {
   I2CPacket = I2CC.I2CPacket[CLIENT_ID];
   Msp430UsciError = I2CC.Msp430UsciError;
 
+  // Connecting SDA and SCL here to avoid a compile time error.  
+  // This needs research!  Is this really necesary?  If so, can we
+  // avoid dragging all of HplMsp430GeneralIOC?  - tod
+  components HplMsp430GeneralIOC as Pins;
+  I2CC.SDA -> Pins.Port101;
+  I2CC.SCL -> Pins.Port102;
+
   UsciC.ResourceConfigure[CLIENT_ID] -> I2CC.ResourceConfigure[CLIENT_ID];
 }
