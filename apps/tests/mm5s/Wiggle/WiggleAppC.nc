@@ -1,6 +1,4 @@
-// $Id: BlinkC.nc,v 1.6 2010-06-29 22:07:16 scipio Exp $
-
-/*									tab:4
+/*
  * Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
  *
@@ -11,7 +9,7 @@
  * - Redistributions of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
  * - Redistributions in binary form must reproduce the above copyright
- *   notice, this list of conditions and the following disclaimer in the
+
  *   documentation and/or other materials provided with the
  *   distribution.
  * - Neither the name of the University of California nor the names of
@@ -31,7 +29,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Copyright (c) 2002-2003 Intel Corporation
+ * Copyright (c) 2002-2005 Intel Corporation
  * All rights reserved.
  *
  * This file is distributed under the terms in the attached INTEL-LICENSE     
@@ -41,35 +39,25 @@
  */
 
 /**
-This turns the leds on and off on an MSP-EXP430F5438 Experimenter Board.
-Use gdb to run it.
 @author Tod Landis
-*/
+ **/
 
-module WiggleC  
+configuration WiggleAppC
 {
-  uses interface Boot;
-  uses interface GeneralIO as Port10;  // pin0 on port 1 
-  uses interface GeneralIO as Port11;
 }
-
-
 implementation
 {
-  event void Boot.booted()
-  {
-    // turn the red led on and off
-    call Port10.set();
-    call Port10.clr();
-    call Port10.set();
-    call Port10.clr();
+  // careful:  using HplMsp430GeneralIOC drags in a lot of unneed stuff I think
+  components MainC, WiggleC, HplMsp430GeneralIOC as GeneralIOC;
 
-    // turn the green led on and off
-    call Port11.set();
-    call Port11.clr();
-    call Port11.set();
-    call Port11.clr();
+  WiggleC -> MainC.Boot;
 
-   }
+  components new Msp430GpioC() as P10;  // this provides interface GeneralIO
+  P10 -> GeneralIOC.Port10;
+  WiggleC.Port10 -> P10;
 
+  components new Msp430GpioC() as P11; 
+  P11 -> GeneralIOC.Port11;
+  WiggleC.Port11 -> P11;
 }
+
