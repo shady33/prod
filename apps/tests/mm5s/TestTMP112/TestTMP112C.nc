@@ -2,20 +2,21 @@
 todo license
  */
  
+#include <stdio.h>
 #include "Timer.h"
+
+char buf[80];
 
 module TestTMP112C {
   uses {
     interface Boot;
-    interface Timer<TMilli> as  TestTimer;	
     interface Read<uint16_t> as TempSensor;
+    interface Timer<TMilli> as  TestTimer;  // not yet
   }
 }
 implementation {  
 
   event void Boot.booted() {
-    //    call TestTimer.startPeriodic(1024);
-
     call TempSensor.read();
   }
   
@@ -25,13 +26,12 @@ implementation {
   }
 
   event void TempSensor.readDone(error_t error, uint16_t data){
-    if (error == SUCCESS){
-      nop();
-      //      if (data > 2047) data -= (1<<12);    the z1 temp test does this?
-      // data *=0.625;
+    if (error == SUCCESS) {
+      sprintf(buf, "SUCCESS:  Temperature reading = %x", data);
     } else {
-      nop();
+      sprintf(buf, "ERROR:  TempSensor returned an error");
     }
+    nop();
   }
 }
 
