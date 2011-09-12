@@ -1,3 +1,4 @@
+
 /*
 todo license
  */
@@ -11,11 +12,9 @@ implementation {
   components MainC, TestTMP112C as App;
   App.Boot -> MainC.Boot;
 
-  //  components new TMP112C() as TempSensor;
-  //  App.TempSensor -> TempSensor; //TMP112C;  
-   components new SimpleTMP102C();
-   App.TempSensor -> SimpleTMP102C;
-
+  components new TMP112C() as TempSensor;
+  App.TempSensor -> TempSensor; 
+  
   components new TimerMilliC() as Timer;
   App.TestTimer -> Timer;
 }

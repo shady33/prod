@@ -14,7 +14,9 @@ module TestTMP112C {
 implementation {  
 
   event void Boot.booted() {
-    call TestTimer.startPeriodic(1024);
+    //    call TestTimer.startPeriodic(1024);
+
+    call TempSensor.read();
   }
   
   event void TestTimer.fired(){
