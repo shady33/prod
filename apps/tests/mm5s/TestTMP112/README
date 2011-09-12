@@ -1,17 +1,12 @@
-README for TestTMP112App
+README for TestTMP112
+Tod Landis <go@todlandis.com>
 
-Author/Contact: Tod Landis <go@todlandis.com>
+These are test applications for the TMP112 driver.  TestTempApp 
+does a reading, which you can examine by setting a breakpoint on
+the nop() call in TempSensor.readDone().  Modify convert.c to
+convert the value you find to degrees Celsius and Fahrenheit.
 
-Description:
-A test application for the TMP112/I2C sensor driver.
+There is also wiring for a timer, but the timer isn't used yet.
 
-This is work-in-progress! Just taking a snapshot
-tod 9/1/2011
 
-Tools:
 
-None
-
-Known bugs/limitations:
-
-None.
