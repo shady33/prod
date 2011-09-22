@@ -12,7 +12,7 @@ implementation {
   App.Boot -> MainC.Boot;
 
   components new LIS3DHC() as AccelSensor;
-  App.AccelSensor -> AccelSensor; 
+  App.AccelX -> AccelSensor.AccelX; 
   
   components new TimerMilliC() as Timer;
   App.TestTimer -> Timer;
