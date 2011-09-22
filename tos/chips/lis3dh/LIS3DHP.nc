@@ -8,7 +8,7 @@ todo
 
 
 generic module LIS3DHP() {
-  provides interface Read<uint16_t> as AccelX;   // matches LIS3l02dq API
+  provides interface Read<uint16_t> as AccelX;   // these are intended to match LIS3l02dq API
   provides interface Read<uint16_t> as AccelY;
   provides interface Read<uint16_t> as AccelZ;
 
@@ -28,16 +28,14 @@ implementation {
     S_GET_ZH,
   };
 
-  }
-
   command error_t AccelX.read() {
     return call AccelXResource.request();        // see AccelXResource.granted
   }
   command error_t AccelY.read() {
-    return call AccelYResource.request();        // see AccelYResource.granted
+    //return call AccelYResource.request();        // see AccelYResource.granted
   }
   command error_t AccelZ.read() {
-    return call AccelZResource.request();        // see AccelZResource.granted
+    //return call AccelZResource.request();        // see AccelZResource.granted
   }
   
   event void AccelXResource.granted() {
