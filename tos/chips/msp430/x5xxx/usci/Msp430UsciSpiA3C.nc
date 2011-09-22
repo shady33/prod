@@ -62,16 +62,15 @@ implementation {
   components Msp430UsciA3P as UsciC;
   Resource = UsciC.Resource[CLIENT_ID];
 
-  components Msp430UsciSpiA3P as SpiC;
-  SpiPacket = SpiC.SpiPacket[CLIENT_ID];
-  SpiByte = SpiC.SpiByte;
-  Msp430UsciError = SpiC.Msp430UsciError;
+  components Msp430UsciSpiA3P as Spi;
+  SpiPacket =       Spi.SpiPacket[CLIENT_ID];
+  SpiByte =         Spi.SpiByte;
+  Msp430UsciError = Spi.Msp430UsciError;
 
-  UsciC.ResourceConfigure[CLIENT_ID] -> SpiC.ResourceConfigure[CLIENT_ID];
+  UsciC.ResourceConfigure[CLIENT_ID] -> Spi.ResourceConfigure[CLIENT_ID];
 
-  components HplMsp430GeneralIOC as GIO;
-
-  SpiC.SIMO -> GIO.UCA3SIMO;
-  SpiC.SOMI -> GIO.UCA3SOMI;
-  SpiC.CLK -> GIO.UCA3CLK;
+  components HplMsp430GeneralIOC as Pins;   // changes here to fix compiler error - tod
+  Spi.SIMO -> Pins.Port104;
+  Spi.SOMI -> Pins.Port105;
+  Spi.CLK  -> Pins.Port100;
 }
