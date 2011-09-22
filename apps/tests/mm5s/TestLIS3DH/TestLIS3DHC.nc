@@ -18,8 +18,6 @@ implementation {
 
   event void Boot.booted() {
     call AccelSensor.readX();  // AIN'T GONNA WORK 
-    call AccelSensor.readY();  // AIN'T GONNA WORK 
-    call AccelSensor.readZ();  // AIN'T GONNA WORK 
   }
   
   event void TestTimer.fired(){
