@@ -40,7 +40,7 @@ implementation {
     S_GET_ZH,
   };
 
-  uint8_t txBuf[2], rxBuf[2];
+  uint8_t txBuf[12], rxBuf[12];
 
   void errorBreakpoint() {
 
@@ -81,7 +81,7 @@ implementation {
   
   event void AccelXResource.granted() {
 
-    txBuf[0] = READ_BIT | (CTRL_REG1 << 2);  // datasheet, p. 23
+    txBuf[0] = (CTRL_REG1 << 2);  // datasheet, p. 23
     txBuf[1] = XEN; //later: | YEN | ZEN;
 
     call CS.clr(); 
