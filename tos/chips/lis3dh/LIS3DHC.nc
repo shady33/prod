@@ -20,4 +20,9 @@ implementation {
   LIS3DHP.AccelXResource -> Spi;
   LIS3DHP.AccelYResource -> Spi;
   LIS3DHP.AccelZResource -> Spi;
+
+  LIS3DHP.SpiPacket -> Spi;
+
+  components HplMsp430GeneralIOC  as Pins;  //todo refactor away the Hpl reference
+  LIS3DHP.CS -> Pins.Port107;
 }

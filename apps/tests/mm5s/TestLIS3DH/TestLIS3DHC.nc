@@ -18,7 +18,7 @@ module TestLIS3DHC {
 implementation {  
 
   event void Boot.booted() {
-    call AccelX.read();  // AIN'T GONNA WORK 
+    call AccelX.read();  // see AccelX.readDone
   }
   
   event void TestTimer.fired(){

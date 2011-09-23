@@ -36,6 +36,13 @@ module TMP112P {
 
 implementation {  
 
+  /*
+     Convenience method for debugging.  Set a breakpoint here to see the
+     stack just before the driver returns an error.
+  */     
+  int errorBreakpoint() {
+    nop();
+  }
   command error_t ReadTemp.read(){
     return call Resource.request();  // see granted()
   }
@@ -70,6 +77,7 @@ implementation {
 
     if(SUCCESS != call I2C.write((I2C_START | I2C_STOP), CLIENT_ADDRESS, 1, &pointerReg)) {  // see writeDone
       call Resource.release();
+      errorBreakpoint();
       post readError();
     }
   }
