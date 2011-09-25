@@ -1,11 +1,8 @@
-/* DO NOT MODIFY
- * This file cloned from Msp430UsciI2CB0C.nc for B3 */
-/**
- * Copyright (c) 2011 Redslate Ltd.
- * Copyright (c) 2009-2010 People Power Co.
+// $Id: BlinkC.nc,v 1.6 2010-06-29 22:07:16 scipio Exp $
+
+/*									tab:4
+ * Copyright (c) 2000-2005 The Regents of the University  of California.  
  * All rights reserved.
- *
- * This open source code was developed with funding from People Power Company
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -13,13 +10,11 @@
  *
  * - Redistributions of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- *
  * - Redistributions in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the
  *   distribution.
- *
- * - Neither the name of the copyright holders nor the names of
+ * - Neither the name of the University of California nor the names of
  *   its contributors may be used to endorse or promote products derived
  *   from this software without specific prior written permission.
  *
@@ -35,42 +30,46 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * Copyright (c) 2002-2003 Intel Corporation
+ * All rights reserved.
+ *
+ * This file is distributed under the terms in the attached INTEL-LICENSE     
+ * file. If you do not find these files, copies can be found by writing to
+ * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
+ * 94704.  Attention:  Intel License Inquiry.
  */
-
-#include "msp430usci.h"
 
 /**
- * Generic configuration for a client that shares USCI_B3 in I2C mode.
- *
- * @author Derek Baker (derek@red-slate.com)
- *   copied from SPI, tweaked for I2C.
- */
+This turns the leds on and off on an MSP-EXP430F5438 Experimenter Board.
+Use gdb to run it.
+@author Tod Landis
+*/
 
-generic configuration Msp430UsciI2CB3C() {
-  provides {
-    interface Resource;
-    interface I2CPacket<TI2CBasicAddr>;
-    interface Msp430UsciError;
-  }
+module WiggleC  
+{
+  uses interface Boot;
+  uses interface GeneralIO as Port10;  // pin0 on port 1 
+  uses interface GeneralIO as Port11;
 }
-implementation {
-  enum {
-    CLIENT_ID = unique(MSP430_USCI_B3_RESOURCE),
-  };
 
-  components Msp430UsciB3P as UsciC;
-  Resource = UsciC.Resource[CLIENT_ID];
 
-  components Msp430UsciI2CB3P as I2CC;
-  I2CPacket = I2CC.I2CPacket[CLIENT_ID];
-  Msp430UsciError = I2CC.Msp430UsciError;
+implementation
+{
+  event void Boot.booted()
+  {
+    // turn the red led on and off
+    call Port10.set();
+    call Port10.clr();
+    call Port10.set();
+    call Port10.clr();
 
-  // Connecting SDA and SCL here to avoid a compile time error.  
-  // This needs research!  Is this really necesary?  If so, can we
-  // avoid dragging all of HplMsp430GeneralIOC?  - tod
-  components HplMsp430GeneralIOC as Pins;
-  I2CC.SDA -> Pins.Port101;
-  I2CC.SCL -> Pins.Port102;
+    // turn the green led on and off
+    call Port11.set();
+    call Port11.clr();
+    call Port11.set();
+    call Port11.clr();
 
-  UsciC.ResourceConfigure[CLIENT_ID] -> I2CC.ResourceConfigure[CLIENT_ID];
+   }
+
 }

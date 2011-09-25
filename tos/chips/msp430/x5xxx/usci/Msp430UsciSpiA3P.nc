@@ -18,17 +18,17 @@ implementation {
 
   components Msp430UsciA3P as UsciC;
 
-  components new Msp430UsciSpiP() as SpiC;
-  SpiC.Usci -> UsciC;
-  SpiC.Interrupts -> UsciC.Interrupts[MSP430_USCI_SPI];
-  SpiC.ArbiterInfo -> UsciC;
+  components new Msp430UsciSpiP() as Spi;
+  Spi.Usci -> UsciC;
+  Spi.Interrupts -> UsciC.Interrupts[MSP430_USCI_SPI];
+  Spi.ArbiterInfo -> UsciC;
 
-  Msp430UsciConfigure = SpiC;
-  ResourceConfigure = SpiC;
-  SpiPacket = SpiC;
-  SpiByte = SpiC;
-  Msp430UsciError = SpiC;
-  SIMO = SpiC.SIMO;
-  SOMI = SpiC.SOMI;
-  CLK = SpiC.CLK;
+  Msp430UsciConfigure = Spi;
+  ResourceConfigure = Spi;
+  SpiPacket = Spi;
+  SpiByte = Spi;
+  Msp430UsciError = Spi;
+  SIMO =  Spi.SIMO;
+  SOMI =  Spi.SOMI;
+  CLK =   Spi.CLK;
 }

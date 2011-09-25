@@ -173,7 +173,7 @@ implementation {
 
     if ((flags & I2C_STOP) && (flags & I2C_ACK_END)) {		/*can only set one or the other*/
       m_rx_len = 0;
-      signal I2CPacket.readDone[client](FAIL,m_rx_addr,m_rx_len,m_rx_buf);
+      //      signal I2CPacket.readDone[client](FAIL,m_rx_addr,m_rx_len,m_rx_buf);
       return FAIL;
     }
 
@@ -184,7 +184,7 @@ implementation {
       while (call Usci.getStopBit()) {
 	if (i >= TIMEOUT) {
 	  m_rx_len = 0;
-	  signal I2CPacket.readDone[client](FAIL,m_rx_addr,m_rx_len,m_rx_buf);
+	  //  signal I2CPacket.readDone[client](FAIL,m_rx_addr,m_rx_len,m_rx_buf);
 	  return FAIL;
 	}
 	i++;
@@ -194,7 +194,7 @@ implementation {
       while (call Usci.getStartBit()) {				/*we must test for the start bit, if we issue a stop before this we get an error*/
 	if (i >= TIMEOUT) {
 	  m_rx_len = 0;
-	  signal I2CPacket.readDone[client](FAIL,m_rx_addr,m_rx_len,m_rx_buf);
+	  // signal I2CPacket.readDone[client](FAIL,m_rx_addr,m_rx_len,m_rx_buf);
 	  return FAIL;
 	}
 	i++;
@@ -209,7 +209,7 @@ implementation {
 	while (call Usci.getStopBit()) {
 	  if (i >= TIMEOUT) {
 	    m_rx_len -= length;
-	    signal I2CPacket.readDone[client](FAIL,m_rx_addr,m_rx_len,m_rx_buf);
+	    //signal I2CPacket.readDone[client](FAIL,m_rx_addr,m_rx_len,m_rx_buf);
 	    return FAIL;
 	  }
 	  i++;
@@ -219,7 +219,7 @@ implementation {
       while (call Usci.isRxIntrPending()==0) {			/*wait for RX of byte*/
 	if (i >= TIMEOUT) {
 	  m_rx_len -= length;
-	  signal I2CPacket.readDone[client](FAIL,m_rx_addr,m_rx_len,m_rx_buf);
+	  //signal I2CPacket.readDone[client](FAIL,m_rx_addr,m_rx_len,m_rx_buf);
 	  return FAIL;
 	}
 	i++;
@@ -266,7 +266,7 @@ implementation {
       while (call Usci.getStopBit()) {
 	if (i >= TIMEOUT) {
 	  m_tx_len = 0;
-	  signal I2CPacket.writeDone[client](FAIL,m_tx_addr,m_tx_len,m_tx_buf);
+	  //	  signal I2CPacket.writeDone[client](FAIL,m_tx_addr,m_tx_len,m_tx_buf);
 	  return FAIL;
 	}
 	i++;
@@ -275,7 +275,7 @@ implementation {
       while (call Usci.getStopBit()) {				/*the STOP bit is cleared when the slave acks the address*/
 	if(i >= TIMEOUT+WRITETIMEOUT) {				/*Some devices use a start with no data to test if the device is ready for write*/
 	  m_tx_len -= length;
-	  signal I2CPacket.writeDone[client](FAIL,m_tx_addr,m_tx_len,m_tx_buf);
+	  //signal I2CPacket.writeDone[client](FAIL,m_tx_addr,m_tx_len,m_tx_buf);
 	  return FAIL;
 	}
 	i++;
@@ -289,12 +289,12 @@ implementation {
       while (call Usci.isTxIntrPending()==0) { 			/*wait for the Byte to be transmitted*/
 	if (i >= TIMEOUT) {
 	  m_tx_len -= length;
-	  signal I2CPacket.writeDone[client](FAIL,m_tx_addr,m_tx_len,m_tx_buf);
+	  //signal I2CPacket.writeDone[client](FAIL,m_tx_addr,m_tx_len,m_tx_buf);
 	  return FAIL;
 	}
 	if ((call Usci.getIe()) == UCNACKIFG) {
 	  m_tx_len -= length;
-	  signal I2CPacket.writeDone[client](FAIL,m_tx_addr,m_tx_len,m_tx_buf);
+	  //signal I2CPacket.writeDone[client](FAIL,m_tx_addr,m_tx_len,m_tx_buf);
 	  return FAIL;
 	}
 	i++;
@@ -305,7 +305,7 @@ implementation {
 	while (call Usci.getStopBit()) {
 	  if (i >= TIMEOUT) {
 	    m_tx_len -= length;
-	    signal I2CPacket.readDone[client](FAIL,m_tx_addr,m_tx_len,m_tx_buf);
+	    //signal I2CPacket.readDone[client](FAIL,m_tx_addr,m_tx_len,m_tx_buf);
 	    return FAIL;
 	  }
 	  i++;

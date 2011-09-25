@@ -1,0 +1,6 @@
+opt iradix 16
+opt fet_block_size 100
+alias q exit
+alias s step
+prog build/mm5s/main.exe
+

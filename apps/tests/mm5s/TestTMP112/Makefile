@@ -1,0 +1,4 @@
+COMPONENT=TestTMP112App
+include $(MAKERULES)
+
+
