@@ -1,28 +1,19 @@
-/*
-todo license
-*/
-
-/*
-Read values from an LIS3DH accelerometer.
-See the README for a description of the value returned.
-
-@author Tod Landis <go@todlandis.com>
-*/
 
 generic configuration LIS3DHC() {
-  provides interface Read<uint16_t> as AccelX;
+  provides interface Init;
+  provides interface SplitControl;
+  provides interface LIS3DH;
 }
+
 implementation {
-  components new LIS3DHP();
-  AccelX = LIS3DHP.AccelX;
+  components LIS3DHP;
+  Init =         LIS3DHP.Init;
+  SplitControl = LIS3DHP.SplitControl;
+  LIS3DH =       LIS3DHP.LIS3DH;
 
-  components new Msp430UsciSpiA3C() as Spi;  
-  LIS3DHP.AccelXResource -> Spi;
-  LIS3DHP.AccelYResource -> Spi;
-  LIS3DHP.AccelZResource -> Spi;
-
+  components new Msp430UsciSpiA3C() as Spi;
   LIS3DHP.SpiPacket -> Spi;
 
-  components HplMsp430GeneralIOC  as Pins;  //todo refactor away the Hpl reference
-  LIS3DHP.CS -> Pins.Port107;
+  components HplMsp430GeneralIOC  as Pins;  //todo refactor away the Hpl reference                                 
+  LIS3DHP.CSN -> Pins.Port107;
 }
