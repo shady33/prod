@@ -174,7 +174,7 @@ implementation {
       }
       call Usci.setTxbuf(txBuf[len-bytesLeft]);
 
-      while (! (UCRXIFG & call Usci.getIfg())) {
+      while (! (UCRXIFG & call Usci.getIfg())) {    //THE WHEREAMI TEST BLOCKS HERE
         ; /* busywait */
       }
 
@@ -188,8 +188,12 @@ implementation {
      * into the CC2420 stack which yields lots of non-atomic accesses.  A redesign
      * of some flavor would be needed to fix this unless we put an atomic here.
      */
-    atomic signal SpiPacket.sendDone[client](txBuf, rxBuf, len, SUCCESS);
-    return SUCCESS;
+    // 'atomic' didn't work here -  tod 
+    //atomic signal SpiPacket.sendDone[client](txBuf, rxBuf, len, SUCCESS); 
+    //CS.set();
+     signal SpiPacket.sendDone[client](txBuf, rxBuf, len, SUCCESS); 
+     //end 
+     return SUCCESS;
   }
 
   default async event void SpiPacket.sendDone[uint8_t client] (uint8_t* txBuf, uint8_t* rxBuf, uint16_t len, error_t error ) { }
