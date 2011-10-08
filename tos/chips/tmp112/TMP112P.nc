@@ -4,7 +4,7 @@ todo license
 
 
 /**
- This is the private module for the TMP112 driver.
+ This is the private module for the TMP112 interfacer.
 
 @author Tod Landis <go@todlandis.com>
  */
@@ -88,6 +88,7 @@ implementation {
   async event void I2C.writeDone(error_t error, uint16_t addr, uint8_t length, uint8_t *data) {
     if(SUCCESS != call I2C.read((I2C_START | I2C_STOP),  CLIENT_ADDRESS, 2, tempData)) {  // see readDone
       call Resource.release();
+      errorBreakpoint();
       post readError();  
     } 
   }   
@@ -101,6 +102,7 @@ implementation {
      if(error == SUCCESS) {
        post readSuccess();
      } else {
+       errorBreakpoint();
        post readError();
      }
   }
