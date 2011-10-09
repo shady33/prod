@@ -40,16 +40,21 @@
  * @author Peter A. Bigot <pab@peoplepowerco.com>
  */
 
-configuration PlatformUsciInitC {
+configuration PlatformUsciMapC {
 } implementation {
   components HplMsp430GeneralIOC as GIO;
 
- // components Msp430UsciUartA0P as UartA0C;
-//  UartA0C.URXD -> GIO.UCA0RXD;
-//  UartA0C.UTXD -> GIO.UCA0TXD;
+  components Msp430UsciUartA0P as UartA0C;
+  UartA0C.URXD -> GIO.UCA0RXD;
+  UartA0C.UTXD -> GIO.UCA0TXD;
 
   components Msp430UsciSpiB0P as SpiB0C;
-   SpiB0C.SIMO -> GIO.UCB0SIMO;
-   SpiB0C.SOMI -> GIO.UCB0SOMI;
-   SpiB0C.CLK -> GIO.UCB0CLK;
+  SpiB0C.SIMO -> GIO.UCB0SIMO;
+  SpiB0C.SOMI -> GIO.UCB0SOMI;
+  SpiB0C.CLK  -> GIO.UCB0CLK;
+
+  components Msp430UsciSpiA3P as SpiA3C;
+  SpiA3C.SIMO -> GIO.UCA3SIMO;
+  SpiA3C.SOMI -> GIO.UCA3SOMI;
+  SpiA3C.CLK  -> GIO.UCA3CLK;
 }

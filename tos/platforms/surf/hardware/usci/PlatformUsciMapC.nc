@@ -1,5 +1,4 @@
-/*
- * Copyright (c) 2009-2010 People Power Co.
+/* Copyright (c) 2009-2010 People Power Co.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +39,7 @@
  * @author Peter A. Bigot <pab@peoplepowerco.com>
  */
 
-configuration PlatformUsciInitC {
+configuration PlatformUsciMapC {
 } implementation {
   components HplMsp430GeneralIOC as GIO;
 
@@ -48,10 +47,8 @@ configuration PlatformUsciInitC {
   UartA0C.URXD -> GIO.UCA0RXD;
   UartA0C.UTXD -> GIO.UCA0TXD;
 
-#ifdef notdef
   components Msp430UsciSpiB0P as SpiB0C;
-   SpiB0C.SIMO -> GIO.UCB0SIMO;
-   SpiB0C.SOMI -> GIO.UCB0SOMI;
-   SpiB0C.CLK -> GIO.UCB0CLK;
-#endif
+  SpiB0C.SIMO -> GIO.UCB0SIMO;
+  SpiB0C.SOMI -> GIO.UCB0SOMI;
+  SpiB0C.CLK -> GIO.UCB0CLK;
 }
