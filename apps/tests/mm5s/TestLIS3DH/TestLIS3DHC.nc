@@ -18,7 +18,7 @@ module TestLIS3DHC {
     interface SplitControl   as ControlAccel;
     interface LIS3DH         as Accel;
 
-    interface Timer<TMilli> as  TestTimer;  // not yet
+    interface Timer<TMilli>  as PeriodTimer;
   }
 }
 
@@ -29,6 +29,10 @@ implementation {
   }
 
   event void Boot.booted() {
+
+    P11DIR = (BIT2 | BIT1 | BIT0);
+    P11SEL = (BIT2 | BIT1 | BIT0);
+
     call InitAccel.init();
     call ControlAccel.start();
     whoAmI();
@@ -54,13 +58,8 @@ implementation {
     //todo
   }
 
-  event void TestTimer.fired(){
+  event void PeriodTimer.fired(){
     nop();
   }
 
 }
-
-
-
-
-

@@ -16,8 +16,6 @@ implementation {
   App.ControlAccel -> Accel.SplitControl;
   App.InitAccel ->    Accel.Init;  
 
-  components new TimerMilliC() as Timer;
-  App.TestTimer -> Timer;
+  components new TimerMilliC() as PeriodTimer;
+  App.PeriodTimer -> PeriodTimer;
 }
-
-
