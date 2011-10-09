@@ -29,6 +29,7 @@ for (split(/\n/, <<'EOText'
   %T/lib/timer
   %T/lib/serial
   %T/lib/power
+  %T/lib/printf
 
 EOText
 )) {
