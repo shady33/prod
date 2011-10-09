@@ -6,7 +6,7 @@ todo license
 #include "Timer.h"
 #include "LIS3DHRegisters.h"
 
-char buf[80];
+char abuf[80];
 char bufx[80];  // for  debugging messages
 char bufy[80];
 char bufz[80];
@@ -47,7 +47,7 @@ implementation {
   }  
 
   async event void Accel.getRegDone( error_t error, uint8_t regAddr, uint8_t val) {
-    sprintf(buf, "getRegDone  error=%x regAddr=%x val=%x (expecting 0x33)", error, regAddr, val);
+    sprintf(abuf, "getRegDone  error=%x regAddr=%x val=%x (expecting 0x33)", error, regAddr, val);
   }  
 
   async event void Accel.alertThreshold() {

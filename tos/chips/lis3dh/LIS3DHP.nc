@@ -174,7 +174,17 @@ implementation {
     tx[0] = (regAddr << 2) | (1 << 7); // datasheet p. 23
     rx[0] = 0;
 
-    sprintf(buf, "d=%x  d2=%x  d3=%x    regAddr = %x  tx[0] = %x", d, d2, d3, regAddr, tx[0]);
+    sprintf(abuf, "d=%x  d2=%x  d3=%x    regAddr = %x  tx[0] = %x", d, d2, d3, regAddr, tx[0]);
+
+#define CIRE
+#ifdef CIRE
+    tx[0] = 0x55;
+    tx[1] = 0x55;
+
+    while (1) {
+      call SpiPacket.send(tx, rx, 2);
+    }
+#endif
 
     atomic mState = STATE_GETREG;
     call CSN.clr(); // CS LOW
@@ -207,7 +217,7 @@ implementation {
     case STATE_GETREG:
       mState = STATE_IDLE;
   
-      sprintf(buf, "txBuf[0] = %x  rxBuf[0] = %x  len=%d error=%d", txBuf[0], rxBuf[0], len, error);
+      sprintf(abuf, "txBuf[0] = %x  rxBuf[0] = %x  len=%d error=%d", txBuf[0], rxBuf[0], len, error);
 
 
       call CSN.set(); // CS HIGH

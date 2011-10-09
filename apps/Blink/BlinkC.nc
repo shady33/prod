@@ -62,12 +62,14 @@ implementation
 {
   event void Boot.booted()
   {
+#ifdef notdef
     start_xt1 = TA0R;
     while (start_xt1 == TA0R) ;
     start_dco = TA1R;
     start_xt1 = TA0R;
     while (start_xt1 == TA0R) ;
     start_dco = TA1R - start_dco;
+#endif
     
     call Timer0.startPeriodic( 250 );
     call Timer1.startPeriodic( 500 );
