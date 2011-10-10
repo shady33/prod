@@ -54,4 +54,12 @@ todo need license
 #define  TIME_LATENCY         0x3C
 #define  TIME_WINDOW          0x3D
 
+#define  L3DH_MULT		0x40
+#define  L3DH_READ		0x80
+
+#define XEN       0x01      // p. 29  CTRL_REG1 bit for x enable                
+#define YEN       0x20      //                      for y                       
+#define ZEN       0x40      //                      for z                       
+#define LPEN      0x80      //                      for low power enable        
+
 #endif
