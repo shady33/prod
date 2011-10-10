@@ -12,7 +12,8 @@ implementation {
   LIS3DH =       LIS3DHP.LIS3DH;
 
   components new Msp430UsciSpiA3C() as Spi;
-  LIS3DHP.SpiPacket -> Spi;
+  LIS3DHP.AccelResource -> Spi;
+  LIS3DHP.SpiPacket     -> Spi;
 
   components HplMsp430GeneralIOC  as Pins;  //todo refactor away the Hpl reference                                 
   LIS3DHP.CSN -> Pins.Port107;

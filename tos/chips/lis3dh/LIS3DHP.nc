@@ -50,9 +50,8 @@ module LIS3DHP
   provides interface SplitControl;
   provides interface LIS3DH;           // getReg() and setReg()
 
+  uses interface Resource as AccelResource;
   uses interface SpiPacket;
-  //todo  uses interface GpioInterrupt as InterruptAlert;
-  //  uses interface GeneralIO as CSN;
   uses interface HplMsp430GeneralIO as CSN;
 }
 
@@ -79,13 +78,6 @@ implementation {
   bool    misInited = FALSE;
   norace error_t mSSError;
 
-
-  task void StartDone() {
-    atomic mState = STATE_IDLE;
-    signal SplitControl.startDone(SUCCESS);
-    return;
-  }
-
   task void StopDone() {
     signal SplitControl.stopDone(mSSError);
     return;
@@ -105,16 +97,12 @@ implementation {
   }
 
   command error_t SplitControl.start() {
-    error_t error = SUCCESS;
-    atomic {
-      if (mState == STATE_STOPPED) { 
-	mState = STATE_STARTING;
-      } else {
-	error = EBUSY;
-      }
-    }
-    if (error) 
-      return error;
+    if (mState != STATE_STOPPED)
+      return EBUSY;
+    mState = STATE_STARTING;
+
+    call AccelResource.request();
+    return SUCCESS;
 
     //old
     //    mSPITxBuf[0] = LIS3L02DQ_CTRL_REG1;
@@ -128,7 +116,11 @@ implementation {
     //call CSN.clr(); // CS LOW
     //error = call SpiPacket.send(tx, rx, 2);
 
-    return error;
+
+  event void AccelResource.granted() {
+    mState = STATE_IDLE;
+    signal SplitControl.startDone(SUCCESS);
+    return;
   }
 
   command error_t SplitControl.stop() {
@@ -230,7 +222,7 @@ implementation {
     case STATE_STARTING:
       mState = STATE_IDLE;
       call CSN.set();
-      post StartDone();
+//      post StartDone();
       break;
     case STATE_STOPPING:
       mState = STATE_STOPPED;

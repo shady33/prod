@@ -35,11 +35,11 @@ implementation {
 
     call InitAccel.init();
     call ControlAccel.start();
-    whoAmI();
   }
   
   event void ControlAccel.startDone(error_t error) {
-    //todo
+    whoAmI();
+    call ControlAccel.stop();
   }  
 
   event void ControlAccel.stopDone(error_t error) {
