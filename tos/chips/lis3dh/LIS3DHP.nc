@@ -44,8 +44,9 @@
 
 #include "LIS3DHRegisters.h"
 
-module LIS3DHP
-{
+uint8_t rx[16], tx[16];
+
+module LIS3DHP {
   provides interface Init;
   provides interface SplitControl;
   provides interface LIS3DH;           // getReg() and setReg()
@@ -54,27 +55,19 @@ module LIS3DHP
   uses interface SpiPacket;
   uses interface HplMsp430GeneralIO as CSN;
 }
-
-#define READ_BIT  0x01      // p. 22 of the datasheet
-#define XEN       0x01      // p. 29  CTRL_REG1 bit for x enable                
-#define YEN       0x20      //                      for y                       
-#define ZEN       0x40      //                      for z                       
-#define LPEN      0x80      //                      for low power enable        
-
 implementation {
 
-  enum {
-    STATE_IDLE,
-    STATE_STARTING,
-    STATE_STOPPING,
-    STATE_STOPPED,
-    STATE_GETREG,
-    STATE_SETREG,
-    STATE_ERROR
-  };
+typedef enum {
+  STATE_STOPPED = 0,
+  STATE_IDLE,
+  STATE_STARTING,
+  STATE_STOPPING,
+  STATE_GETREG,
+  STATE_SETREG,
+  STATE_ERROR
+} lis3dh_state_t;
 
-  uint8_t rx[4], tx[4];
-  uint8_t mState;
+  lis3dh_state_t mState;
   bool    misInited = FALSE;
   norace error_t mSSError;
 
@@ -84,15 +77,14 @@ implementation {
   }
 
   command error_t Init.init() {
-    atomic {
-      if (!misInited) {
-	misInited = TRUE;
-	mState = STATE_STOPPED;
-      }
-      // Control CS pin manually
-      call CSN.makeOutput();
-      call CSN.set();
+    if (!misInited) {
+      misInited = TRUE;
+      mState = STATE_STOPPED;
     }
+
+    // Control CS pin manually
+    call CSN.set();			/* first turn CS off */
+    call CSN.makeOutput();		/* then make it an output */
     return SUCCESS;
   }
 
@@ -104,6 +96,7 @@ implementation {
     call AccelResource.request();
     return SUCCESS;
 
+#ifdef notdef
     //old
     //    mSPITxBuf[0] = LIS3L02DQ_CTRL_REG1;
     //mSPITxBuf[1] = 0;
@@ -115,6 +108,8 @@ implementation {
 
     //call CSN.clr(); // CS LOW
     //error = call SpiPacket.send(tx, rx, 2);
+#endif
+  }
 
 
   event void AccelResource.granted() {
@@ -123,18 +118,11 @@ implementation {
     return;
   }
 
-  command error_t SplitControl.stop() {
-    error_t error = SUCCESS;
 
-    atomic {
-      if (mState == STATE_IDLE) {
-	mState = STATE_STOPPING;
-      } else { 
-	error = EBUSY;
-      }
-    }
-    if (error)
-      return error;
+  command error_t SplitControl.stop() {
+    if (mState != STATE_IDLE)
+      return EBUSY;
+    mState = STATE_STOPPING;
 
     tx[0] = CTRL_REG1;
     // old
@@ -145,31 +133,19 @@ implementation {
     tx[1] = 0;        // power done mode, datasheet p. 30
 
     call CSN.clr(); // CS LOW
-    error = call SpiPacket.send(tx, rx, 2);
-    return error;
+    return call SpiPacket.send(tx, rx, 2);
   }
   
   command error_t LIS3DH.getReg(uint8_t regAddr) {
-    error_t error = SUCCESS;
+    int i;
 
-    //hack
-    uint8_t d = regAddr << 2;
-    uint8_t d2 = (1 << 7);
-    uint8_t d3 = d | d2;
+    if((regAddr < 0x07) || (regAddr > 0x3D))
+      return EINVAL;
 
-    if((regAddr < 0x07) || (regAddr > 0x3D)) {  // for the  LIS3DH - varies from device to device
-      error = EINVAL;
-      return error;
-    }
-
-
-    tx[0] = (regAddr << 2) | (1 << 7); // datasheet p. 23
+    tx[0] = L3DH_READ | regAddr;
     rx[0] = 0;
 
-    sprintf(abuf, "d=%x  d2=%x  d3=%x    regAddr = %x  tx[0] = %x", d, d2, d3, regAddr, tx[0]);
-
-#define CIRE
-#ifdef CIRE
+#ifdef notdef
     tx[0] = 0x55;
     tx[1] = 0x55;
 
@@ -178,27 +154,40 @@ implementation {
     }
 #endif
 
-    atomic mState = STATE_GETREG;
-    call CSN.clr(); // CS LOW
-    error = call SpiPacket.send(tx, rx, 1);
+#ifdef notdef
+    mState = STATE_GETREG;
+    call CSN.clr();		// assert CS
+    call SpiPacket.send(tx, rx, 8);
+    call CSN.set();		// deassert CS
+#endif
 
-    return error;
-
+    UCA3STAT |= UCLISTEN;
+    P10OUT &= ~(0x80);
+    i = 0;
+    while (!(UCA3IFG & UCTXIFG)) ;
+    UCA3TXBUF = tx[0];
+    while (!(UCA3IFG & UCRXIFG)) ;
+    rx[i++] = UCA3RXBUF;
+    while (i < 8) {
+      while (!(UCA3IFG & UCTXIFG)) ;
+      UCA3TXBUF = i;
+      while (!(UCA3IFG & UCRXIFG)) ;
+      rx[i++] = UCA3RXBUF;
+    }
+    P10OUT |= 0x80;
+    return SUCCESS;
   }
-  
+
   command error_t LIS3DH.setReg(uint8_t regAddr, uint8_t val) {
     error_t error = SUCCESS;
 
-    if((regAddr < 0x07) || (regAddr > 0x3D)) {  // LIS3DH changed this
-      error = EINVAL;
-      return error;
-    }
+    if((regAddr < 0x07) || (regAddr > 0x3D))
+      return EINVAL;
     tx[0] = regAddr;
     tx[1] = val;
-    atomic mState = STATE_SETREG;
-    error = call SpiPacket.send(tx, rx, 2);
-
-    return error;
+    mState = STATE_SETREG;
+    call SpiPacket.send(tx, rx, 2);
+    return SUCCESS;
   }
 
   async event void SpiPacket.sendDone(uint8_t* txBuf, uint8_t* rxBuf, uint16_t len, error_t spi_error ) {
