@@ -33,6 +33,12 @@ implementation {
     P11DIR = (BIT2 | BIT1 | BIT0);
     P11SEL = (BIT2 | BIT1 | BIT0);
 
+    P10OUT = 0;
+    P10DIR = (BIT7 | BIT5 | BIT4 | BIT0);
+    P10OUT = 0xff;
+    P10OUT = 0;
+    P10OUT = 0xff;
+
     call InitAccel.init();
     call ControlAccel.start();
   }

@@ -52,7 +52,7 @@ module LIS3DHP {
   provides interface LIS3DH;           // getReg() and setReg()
 
   uses interface Resource as AccelResource;
-  uses interface SpiPacket;
+  uses interface SpiBlock;
   uses interface HplMsp430GeneralIO as CSN;
 }
 implementation {
@@ -107,7 +107,7 @@ typedef enum {
     //  tx[1] = XEN | YEN | ZEN;
 
     //call CSN.clr(); // CS LOW
-    //error = call SpiPacket.send(tx, rx, 2);
+    //error = call SpiBlock.transfer(tx, rx, 2);
 #endif
   }
 
@@ -132,13 +132,13 @@ typedef enum {
     // new
     tx[1] = 0;        // power done mode, datasheet p. 30
 
-    call CSN.clr(); // CS LOW
-    return call SpiPacket.send(tx, rx, 2);
+    call CSN.clr();			/* assert CS */
+    call SpiBlock.transfer(tx, rx, 2);
+    call CSN.set();			/* deassert */
+    return SUCCESS;
   }
   
   command error_t LIS3DH.getReg(uint8_t regAddr) {
-    int i;
-
     if((regAddr < 0x07) || (regAddr > 0x3D))
       return EINVAL;
 
@@ -150,18 +150,27 @@ typedef enum {
     tx[1] = 0x55;
 
     while (1) {
-      call SpiPacket.send(tx, rx, 2);
+      call SpiBlock.transfer(tx, rx, 2);
     }
 #endif
 
-#ifdef notdef
     mState = STATE_GETREG;
     call CSN.clr();		// assert CS
-    call SpiPacket.send(tx, rx, 8);
+    call SpiBlock.transfer(tx, rx, 8);
     call CSN.set();		// deassert CS
-#endif
 
-    UCA3STAT |= UCLISTEN;
+    tx[0] = L3DH_READ | L3DH_MULT | 0x1f;
+    call CSN.clr();		// assert CS
+    call SpiBlock.transfer(tx, rx, 8);
+    call CSN.set();		// deassert CS
+
+    tx[0] = L3DH_READ | L3DH_MULT | 0x27;
+    call CSN.clr();		// assert CS
+    call SpiBlock.transfer(tx, rx, 9);
+    call CSN.set();		// deassert CS
+    return SUCCESS;
+
+#ifdef notdef 
     P10OUT &= ~(0x80);
     i = 0;
     while (!(UCA3IFG & UCTXIFG)) ;
@@ -175,7 +184,7 @@ typedef enum {
       rx[i++] = UCA3RXBUF;
     }
     P10OUT |= 0x80;
-    return SUCCESS;
+#endif
   }
 
   command error_t LIS3DH.setReg(uint8_t regAddr, uint8_t val) {
@@ -186,10 +195,11 @@ typedef enum {
     tx[0] = regAddr;
     tx[1] = val;
     mState = STATE_SETREG;
-    call SpiPacket.send(tx, rx, 2);
+    call SpiBlock.transfer(tx, rx, 2);
     return SUCCESS;
   }
 
+#ifdef notdef
   async event void SpiPacket.sendDone(uint8_t* txBuf, uint8_t* rxBuf, uint16_t len, error_t spi_error ) {
     error_t error = spi_error;
 
@@ -223,6 +233,7 @@ typedef enum {
     }
     return;
   }
+#endif
 
   //  async event void InterruptAlert.fired() {
   //    signal LIS3DH.alertThreshold();
