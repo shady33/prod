@@ -1,0 +1,19 @@
+PLATFORM = bmote
+PLATFORMDIR = $(TOSROOT)/tos/platforms/$(PLATFORM)
+
+MSP_MCU =  msp430f5438a
+
+BUILD_NUM_FILE = $(PLATFORMDIR)/_Build
+BUILD_NUM := $(shell if [ -f $(BUILD_NUM_FILE) ]; then echo $$(($$(cat $(BUILD_NUM_FILE)) + 1)); else echo 0; fi)
+
+PFLAGS += -D_BUILD=$(BUILD_NUM)
+
+$(call TOSMake_include_platform,msp)
+
+build_num: FORCE
+	@if [ ! -f $(BUILD_NUM_FILE) ] ; then echo -1 > $(BUILD_NUM_FILE); fi
+	@echo $$(($$(cat $(BUILD_NUM_FILE)) + 1)) > $(BUILD_NUM_FILE)
+	@echo BUILD: $(BUILD_NUM)
+
+bmote: build_num $(BUILD_DEPS)
+        @:
